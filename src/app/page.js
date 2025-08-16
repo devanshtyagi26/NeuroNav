@@ -10,20 +10,21 @@ import {
 export default function Home() {
   useEffect(() => {
     // Optionally set GPU usage flag
-    // setUseGPU(false); // Uncomment to force 2D context
+    setUseGPU(false); // Uncomment to force 2D context
 
-    const canvas = document.getElementById("myCanvas");
-    const ctx = getCanvasContext(canvas);
+    const carCanvas = document.getElementById("myCanvas");
+    carCanvas.width = 200;
+    const carCtx = getCanvasContext(carCanvas);
     if (
-      ctx &&
+      carCtx &&
       window.WebGLRenderingContext &&
-      ctx instanceof window.WebGLRenderingContext
+      carCtx instanceof window.WebGLRenderingContext
     ) {
       console.log("Using WebGL context");
       import("../JavaScript/GPU/main").then((mod) => {
         if (mod && typeof mod.default === "function") mod.default();
       });
-    } else if (ctx && ctx instanceof window.CanvasRenderingContext2D) {
+    } else if (carCtx && carCtx instanceof window.CanvasRenderingContext2D) {
       console.log("Using 2D context");
       import("../JavaScript/CPU/main").then((mod) => {
         if (mod && typeof mod.default === "function") mod.default();
@@ -35,7 +36,7 @@ export default function Home() {
 
   return (
     <>
-      <canvas id="myCanvas" width={800} height={600}></canvas>
+      <canvas id="myCanvas"></canvas>
     </>
   );
 }

@@ -15,18 +15,55 @@ const N = 100;
 const cars = generateCars(N);
 let bestCar = cars[0];
 
-if (localStorage.getItem("bestBrain")) {
-  const bestBrainObj = JSON.parse(localStorage.getItem("bestBrain"));
-  for (let i = 0; i < cars.length; i++) {
-    const brain = NeuralNetwork.fromJSON(bestBrainObj);
-    if (brain) {
-      cars[i].brain = brain;
-      if (i != 0) {
-        NeuralNetwork.mutate(cars[i].brain, 0.3);
+// MongoDB brain storage helpers
+async function fetchBestBrain() {
+  try {
+    const res = await fetch("/api/brain");
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data && data.bestBrain ? data.bestBrain : null;
+  } catch (e) {
+    console.error("Failed to fetch bestBrain from MongoDB:", e);
+    return null;
+  }
+}
+
+async function saveBestBrain(brain) {
+  try {
+    await fetch("/api/brain", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bestBrain: brain }),
+    });
+    console.log("Best brain saved to MongoDB");
+  } catch (e) {
+    console.error("Failed to save bestBrain to MongoDB:", e);
+  }
+}
+
+async function discardBestBrain() {
+  try {
+    await fetch("/api/brain", { method: "DELETE" });
+  } catch (e) {
+    console.error("Failed to discard bestBrain from MongoDB:", e);
+  }
+}
+
+// Load bestBrain from MongoDB on startup
+(async () => {
+  const bestBrainObj = await fetchBestBrain();
+  if (bestBrainObj) {
+    for (let i = 0; i < cars.length; i++) {
+      const brain = NeuralNetwork.fromJSON(bestBrainObj);
+      if (brain) {
+        cars[i].brain = brain;
+        if (i != 0) {
+          NeuralNetwork.mutate(cars[i].brain, 0.3);
+        }
       }
     }
   }
-}
+})();
 
 const traffic = [
   new Car(road.getLaneCenter(1), -100, 30, 50, "SLAVE", 2),
@@ -72,14 +109,20 @@ function injectButtons() {
 injectButtons();
 animate();
 
-export function save() {
-  localStorage.setItem("bestBrain", JSON.stringify(bestCar.brain));
+export async function save() {
+  // Ensure we send a plain object, not a class instance
+  const brainObj =
+    typeof bestCar.brain.toJSON === "function"
+      ? bestCar.brain.toJSON()
+      : bestCar.brain;
+  await saveBestBrain(brainObj);
   console.log(bestCar.brain);
 }
 
-export function discard() {
-  localStorage.removeItem("bestBrain");
+export async function discard() {
+  await discardBestBrain();
 }
+
 function generateCars(N) {
   const cars = [];
 

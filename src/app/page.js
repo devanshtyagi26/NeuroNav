@@ -1,4 +1,35 @@
+"use client";
+
+import { useEffect } from "react";
+import {
+  getCanvasContext,
+  setUseGPU,
+  isWebGLAvailable,
+} from "../JavaScript/renderer";
 
 export default function Home() {
-  return <div>Hi</div>;
+  useEffect(() => {
+    // Optionally set GPU usage flag
+    setUseGPU(false); // Uncomment to force 2D context
+
+    const canvas = document.getElementById("myCanvas");
+    const ctx = getCanvasContext(canvas);
+    if (
+      ctx &&
+      window.WebGLRenderingContext &&
+      ctx instanceof window.WebGLRenderingContext
+    ) {
+      console.log("Using WebGL context");
+    } else if (ctx && ctx instanceof window.CanvasRenderingContext2D) {
+      console.log("Using 2D context");
+    } else {
+      console.warn("No valid canvas context available");
+    }
+  }, []);
+
+  return (
+    <>
+      <canvas id="myCanvas" width={800} height={600}></canvas>
+    </>
+  );
 }

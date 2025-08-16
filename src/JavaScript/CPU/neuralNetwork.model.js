@@ -8,11 +8,9 @@ class NeuralNetwork {
 
   static feedForward(givenInputs, network) {
     let outputs = Layer.feedForward(givenInputs, network.layers[0]);
-
     for (let i = 1; i < network.layers.length; i++) {
       outputs = Layer.feedForward(outputs, network.layers[i]);
     }
-
     return outputs;
   }
 
@@ -31,6 +29,14 @@ class NeuralNetwork {
         }
       }
     });
+  }
+
+  // Reconstruct a NeuralNetwork instance from a plain object
+  static fromJSON(obj) {
+    if (!obj || !Array.isArray(obj.layers)) return null;
+    const nn = Object.create(NeuralNetwork.prototype);
+    nn.layers = obj.layers.map(Layer.fromJSON);
+    return nn;
   }
 }
 
@@ -79,6 +85,19 @@ class Layer {
     }
 
     return layer.outputs;
+  }
+
+  // Reconstruct a Layer instance from a plain object
+  static fromJSON(obj) {
+    if (!obj) return null;
+    const layer = Object.create(Layer.prototype);
+    layer.inputs = Array.isArray(obj.inputs) ? [...obj.inputs] : [];
+    layer.outputs = Array.isArray(obj.outputs) ? [...obj.outputs] : [];
+    layer.biases = Array.isArray(obj.biases) ? [...obj.biases] : [];
+    layer.weights = Array.isArray(obj.weights)
+      ? obj.weights.map((row) => [...row])
+      : [];
+    return layer;
   }
 }
 

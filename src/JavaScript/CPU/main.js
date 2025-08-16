@@ -1,10 +1,7 @@
 import Car from "./car.model.js";
 import Road from "./road.model";
-import {
-  getCanvasContext,
-  setUseGPU,
-  isWebGLAvailable,
-} from "@/JavaScript/renderer.js";
+import NeuralNetwork from "./neuralNetwork.model.js";
+import { getCanvasContext } from "@/JavaScript/renderer.js";
 import { drawSVGOnCanvas } from "@/JavaScript/utils.js";
 import { mainCarSVG, traffic1SVG } from "@/JavaScript/svgStrings.js";
 
@@ -19,10 +16,14 @@ const cars = generateCars(N);
 let bestCar = cars[0];
 
 if (localStorage.getItem("bestBrain")) {
+  const bestBrainObj = JSON.parse(localStorage.getItem("bestBrain"));
   for (let i = 0; i < cars.length; i++) {
-    cars[i].brain = JSON.parse(localStorage.getItem("bestBrain"));
-    if (i != 0) {
-      NeuralNetwork.mutate(cars[i].brain, 0.3);
+    const brain = NeuralNetwork.fromJSON(bestBrainObj);
+    if (brain) {
+      cars[i].brain = brain;
+      if (i != 0) {
+        NeuralNetwork.mutate(cars[i].brain, 0.3);
+      }
     }
   }
 }
@@ -46,6 +47,29 @@ const trafficCar1 = drawSVGOnCanvas(traffic1SVG);
 
 const carSVGs = [mainCar, trafficCar1];
 
+// Inject Save and Discard buttons
+function injectButtons() {
+  const controlsDiv = document.createElement("div");
+  controlsDiv.style.position = "absolute";
+  controlsDiv.style.top = "10px";
+  controlsDiv.style.left = "10px";
+  controlsDiv.style.zIndex = 1000;
+
+  const saveBtn = document.createElement("button");
+  saveBtn.textContent = "Save Brain";
+  saveBtn.onclick = save;
+  saveBtn.style.marginRight = "8px";
+
+  const discardBtn = document.createElement("button");
+  discardBtn.textContent = "Discard Brain";
+  discardBtn.onclick = discard;
+
+  controlsDiv.appendChild(saveBtn);
+  controlsDiv.appendChild(discardBtn);
+  document.body.appendChild(controlsDiv);
+}
+
+injectButtons();
 animate();
 
 export function save() {

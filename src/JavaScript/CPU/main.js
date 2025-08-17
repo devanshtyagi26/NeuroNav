@@ -58,7 +58,7 @@ async function discardBestBrain() {
       if (brain) {
         cars[i].brain = brain;
         if (i != 0) {
-          NeuralNetwork.mutate(cars[i].brain, 0.3);
+          NeuralNetwork.mutate(cars[i].brain, 0.7);
         }
       }
     }
@@ -119,8 +119,22 @@ export async function save() {
   console.log(bestCar.brain);
 }
 
+// import { brain } from "../injectBrain.js";
+// if (brain && typeof brain === "object") {
+//   save(brain);
+//   console.log("Brain injected:", brain);
+// }
+
 export async function discard() {
-  await discardBestBrain();
+  const password = prompt("Enter password to discard the brain:");
+  const DISCARD_PASSWORD = process.env.NEXT_PUBLIC_DISCARD_PASSWORD;
+
+  if (password === DISCARD_PASSWORD) {
+    await discardBestBrain();
+    alert("Brain discarded.");
+  } else {
+    alert("Incorrect password. Brain not discarded.");
+  }
 }
 
 function generateCars(N) {

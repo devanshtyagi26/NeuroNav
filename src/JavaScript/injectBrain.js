@@ -13,7 +13,7 @@ export function injectBrain(jsonObj) {
   }
 }
 
-const brain = {
+export const brain = {
   layers: [
     {
       inputs: [0.5586746293598328, 0.21680671420560382, 0, 0, 0],
